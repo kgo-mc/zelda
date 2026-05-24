@@ -2,8 +2,7 @@ name: Zelda CI/CD
 
 on:
   push:
-    branches: [ "main" ]
-    tags:     [ "v*" ]         # v1.0.0, v1.2.3, etc.
+    tags:     [ "v*" ]
   pull_request:
     branches: [ "main" ]
 
@@ -71,7 +70,10 @@ jobs:
 
       - name: Set Maven version from tag
         run: |
-          mvn --batch-mode versions:set -DnewVersion=${{ steps.version.outputs.VERSION }}
+          mvn --batch-mode versions:set \
+            -DnewVersion=${{ steps.version.outputs.VERSION }} \
+            -DprocessAllModules=true \
+            -DupdateMatchingVersions=true
           mvn --batch-mode versions:commit
 
       - name: Deploy all modules to GitHub Packages

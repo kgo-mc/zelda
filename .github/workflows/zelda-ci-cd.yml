@@ -77,7 +77,7 @@ jobs:
           mvn --batch-mode versions:commit
 
       - name: Deploy all modules to GitHub Packages
-        run: mvn --batch-mode --no-transfer-progress deploy -DskipTests
+        run: mvn --batch-mode --no-transfer-progress deploy -DskipTests -e
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

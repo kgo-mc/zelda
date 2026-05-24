@@ -21,7 +21,7 @@
         <repository>
             <id>github</id>
             <name>Zelda GitHub Packages</name>
-            <url>https://maven.pkg.github.com/kgomc/zelda</url>
+            <url>https://maven.pkg.github.com/kgo-mc/zelda</url>
         </repository>
     </distributionManagement>
 

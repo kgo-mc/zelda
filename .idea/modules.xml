@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/zelda-builder.iml" filepath="$PROJECT_DIR$/zelda-builder.iml" />
+      <module fileurl="file://$PROJECT_DIR$/zelda-configuration.iml" filepath="$PROJECT_DIR$/zelda-configuration.iml" />
+      <module fileurl="file://$PROJECT_DIR$/zelda-core.iml" filepath="$PROJECT_DIR$/zelda-core.iml" />
+      <module fileurl="file://$PROJECT_DIR$/zelda-database.iml" filepath="$PROJECT_DIR$/zelda-database.iml" />
+      <module fileurl="file://$PROJECT_DIR$/zelda-messaging.iml" filepath="$PROJECT_DIR$/zelda-messaging.iml" />
+      <module fileurl="file://$PROJECT_DIR$/zelda-paper.iml" filepath="$PROJECT_DIR$/zelda-paper.iml" />
+      <module fileurl="file://$PROJECT_DIR$/zelda-ui.iml" filepath="$PROJECT_DIR$/zelda-ui.iml" />
+      <module fileurl="file://$PROJECT_DIR$/zelda-velocity.iml" filepath="$PROJECT_DIR$/zelda-velocity.iml" />
+    </modules>
+  </component>
+</project>

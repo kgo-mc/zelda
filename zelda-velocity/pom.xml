@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>net.kgomc.zelda</groupId>
+        <artifactId>zelda-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>zelda-velocity</artifactId>
+    <packaging>jar</packaging>
+
+    <name>Zelda :: Velocity Adapter</name>
+    <description>
+        Adapts Velocity's plugin system to the ZeldaPlugin interface.
+        This is the only Zelda module that imports Velocity — all other modules
+        remain platform-agnostic through ZeldaPlugin.
+        Bridges Velocity's SLF4J logger to java.util.logging internally.
+    </description>
+
+    <dependencies>
+
+        <!-- Core — provides the ZeldaPlugin interface -->
+        <dependency>
+            <groupId>net.kgomc.zelda</groupId>
+            <artifactId>zelda-core</artifactId>
+        </dependency>
+
+        <!--
+            Velocity API — provided by the proxy at runtime.
+            This is the ONLY module in the Zelda library that touches Velocity.
+        -->
+        <dependency>
+            <groupId>com.velocitypowered</groupId>
+            <artifactId>velocity-api</artifactId>
+        </dependency>
+
+    </dependencies>
+
+</project>

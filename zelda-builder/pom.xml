@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>net.kgomc.zelda</groupId>
+        <artifactId>zelda-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>zelda-builder</artifactId>
+    <packaging>jar</packaging>
+
+    <name>Zelda :: Builder</name>
+    <description>
+        Entry point for the Zelda library. Provides the fluent Zelda.builder() API
+        that wires all modules together and initialises ZeldaContext.
+        This is the only module that imports all other Zelda modules — consumers
+        depend only on this artifact.
+    </description>
+
+    <dependencies>
+
+        <!-- Core -->
+        <dependency>
+            <groupId>net.kgomc.zelda</groupId>
+            <artifactId>zelda-core</artifactId>
+        </dependency>
+
+        <!-- Platform adapters — optional, only one will be on the classpath -->
+        <dependency>
+            <groupId>net.kgomc.zelda</groupId>
+            <artifactId>zelda-paper</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>net.kgomc.zelda</groupId>
+            <artifactId>zelda-velocity</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Feature modules — all optional so consumers shade only what they use -->
+        <dependency>
+            <groupId>net.kgomc.zelda</groupId>
+            <artifactId>zelda-database</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>net.kgomc.zelda</groupId>
+            <artifactId>zelda-configuration</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>net.kgomc.zelda</groupId>
+            <artifactId>zelda-messaging</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>net.kgomc.zelda</groupId>
+            <artifactId>zelda-ui</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>net.kgomc.zelda</groupId>
+            <artifactId>zelda-injection</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>net.kgomc.zelda</groupId>
+            <artifactId>zelda-outbox</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+    </dependencies>
+
+</project>

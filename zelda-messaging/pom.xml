@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>net.kgomc.zelda</groupId>
+        <artifactId>zelda-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>zelda-messaging</artifactId>
+    <packaging>jar</packaging>
+
+    <name>Zelda :: Messaging</name>
+    <description>
+        Platform-agnostic messaging module — palette-driven MiniMessage formatting,
+        ITarget abstraction (Paper + Velocity), named templates (YAML + programmatic),
+        and multi-channel delivery (chat, action bar, title, boss bar, sound).
+        No dependency on zelda-player — theme injection via ThemeProvider interface.
+    </description>
+
+    <dependencies>
+
+        <!-- Shared kernel -->
+        <dependency>
+            <groupId>net.kgomc.zelda</groupId>
+            <artifactId>zelda-core</artifactId>
+        </dependency>
+
+        <!-- Zelda configuration — loads palette.yml and messages.yml -->
+        <dependency>
+            <groupId>net.kgomc.zelda</groupId>
+            <artifactId>zelda-configuration</artifactId>
+        </dependency>
+
+        <!--
+            Paper API — provided. Used for Paper-side ITarget implementations.
+            Velocity-side targets live in zelda-velocity and depend on this module.
+        -->
+        <dependency>
+            <groupId>io.papermc.paper</groupId>
+            <artifactId>paper-api</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Velocity API — provided, optional. For VelocityPlayerTarget. -->
+        <dependency>
+            <groupId>com.velocitypowered</groupId>
+            <artifactId>velocity-api</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Testing -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+        </dependency>
+
+    </dependencies>
+
+</project>

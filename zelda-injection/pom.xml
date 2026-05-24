@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>net.kgomc.zelda</groupId>
+        <artifactId>zelda-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>zelda-injection</artifactId>
+    <packaging>jar</packaging>
+
+    <name>Zelda :: Injection</name>
+    <description>
+        Lightweight JSR-330 dependency injection module backed by Feather.
+        Auto-binds all active Zelda modules after onEnable completes.
+        Supports constructor, field, and method injection plus @Singleton scoping.
+    </description>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>net.kgomc.zelda</groupId>
+            <artifactId>zelda-core</artifactId>
+        </dependency>
+
+        <!--
+            Feather — minimal JSR-330 DI, 1/50th the size of Guice.
+            Published on JitPack.
+        -->
+        <dependency>
+            <groupId>com.github.zsoltherpai</groupId>
+            <artifactId>feather</artifactId>
+            <version>${feather.version}</version>
+        </dependency>
+
+        <!-- JSR-330 annotations (@Inject, @Singleton, @Named) -->
+        <dependency>
+            <groupId>javax.inject</groupId>
+            <artifactId>javax.inject</artifactId>
+            <version>1</version>
+        </dependency>
+
+
+
+    </dependencies>
+
+</project>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding">
+    <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/zelda-builder/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/zelda-builder/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/zelda-config/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/zelda-config/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/zelda-configuration/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/zelda-configuration/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/zelda-core/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/zelda-core/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/zelda-database/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/zelda-database/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/zelda-injection/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/zelda-injection/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/zelda-messaging/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/zelda-messaging/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/zelda-outbox/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/zelda-outbox/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/zelda-paper/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/zelda-paper/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/zelda-ui/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/zelda-ui/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/zelda-velocity/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/zelda-velocity/src/main/resources" charset="UTF-8" />
+  </component>
+</project>

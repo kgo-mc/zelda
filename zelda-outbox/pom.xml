@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>net.kgomc.zelda</groupId>
+        <artifactId>zelda-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>zelda-outbox</artifactId>
+    <packaging>jar</packaging>
+
+    <name>Zelda :: Outbox</name>
+    <description>
+        Transactional outbox pattern — persists events to DB atomically,
+        polls for pending events, dispatches via RxJava Observable streams,
+        supports delayed execution and exponential backoff retry.
+        Dead-letters to zelda_outbox_dead after max attempts exceeded.
+    </description>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>net.kgomc.zelda</groupId>
+            <artifactId>zelda-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>net.kgomc.zelda</groupId>
+            <artifactId>zelda-database</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.reactivex.rxjava3</groupId>
+            <artifactId>rxjava</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+        </dependency>
+
+    </dependencies>
+
+</project>

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>net.kgomc.zelda</groupId>
+        <artifactId>zelda-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>zelda-ui</artifactId>
+    <packaging>jar</packaging>
+
+    <name>Zelda :: UI</name>
+    <description>
+        Config-driven inventory UI module built on InvUI.
+        Supports layout strings, slot groups, showIf/showIfFirst conditions,
+        placeholder resolution (PAPI + custom), animations, and pagination.
+        Server-only — guarded by RuntimeKind.SERVER.
+    </description>
+
+    <repositories>
+        <repository>
+            <id>xenondevs</id>
+            <url>https://repo.xenondevs.xyz/releases</url>
+        </repository>
+        <!-- PlaceholderAPI -->
+        <repository>
+            <id>placeholderapi</id>
+            <url>https://repo.extendedclip.com/content/repositories/placeholderapi/</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+
+        <!-- Zelda core -->
+        <dependency>
+            <groupId>net.kgomc.zelda</groupId>
+            <artifactId>zelda-core</artifactId>
+        </dependency>
+
+        <!-- Paper — UI is server-only -->
+        <dependency>
+            <groupId>io.papermc.paper</groupId>
+            <artifactId>paper-api</artifactId>
+        </dependency>
+
+        <!-- Zelda configuration — reads menu YAML files -->
+        <dependency>
+            <groupId>net.kgomc.zelda</groupId>
+            <artifactId>zelda-configuration</artifactId>
+        </dependency>
+
+        <!-- InvUI — inventory GUI framework -->
+        <dependency>
+            <groupId>xyz.xenondevs.invui</groupId>
+            <artifactId>invui</artifactId>
+            <version>${invui.version}</version>
+            <type>pom</type>
+        </dependency>
+
+        <!-- PlaceholderAPI — optional, auto-detected at runtime -->
+        <dependency>
+            <groupId>me.clip</groupId>
+            <artifactId>placeholderapi</artifactId>
+            <version>${papi.version}</version>
+            <scope>provided</scope>
+            <optional>true</optional>
+        </dependency>
+
+
+    </dependencies>
+
+</project>

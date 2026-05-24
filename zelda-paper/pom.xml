@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>net.kgomc.zelda</groupId>
+        <artifactId>zelda-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>zelda-paper</artifactId>
+    <packaging>jar</packaging>
+
+    <name>Zelda :: Paper Adapter</name>
+    <description>
+        Adapts Paper/Spigot/Bukkit's JavaPlugin to the ZeldaPlugin interface.
+        This is the only Zelda module that imports Paper — all other modules
+        remain platform-agnostic through ZeldaPlugin.
+    </description>
+
+    <dependencies>
+        <dependency>
+            <groupId>net.kgomc.zelda</groupId>
+            <artifactId>zelda-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.papermc.paper</groupId>
+            <artifactId>paper-api</artifactId>
+        </dependency>
+
+    </dependencies>
+
+</project>

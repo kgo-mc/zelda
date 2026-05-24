@@ -22,14 +22,32 @@
     </description>
 
     <dependencies>
+
+        <!-- Core — provides the ZeldaPlugin interface -->
         <dependency>
             <groupId>net.kgomc.zelda</groupId>
             <artifactId>zelda-core</artifactId>
         </dependency>
 
+        <!--
+            Paper API — provided by the server at runtime.
+            This is the ONLY module in the Zelda library that touches Paper.
+        -->
         <dependency>
             <groupId>io.papermc.paper</groupId>
             <artifactId>paper-api</artifactId>
+        </dependency>
+
+        <!--
+            ConfigLib Paper — adds Bukkit type serializers (ItemStack, Location, etc.)
+            on top of configlib-yaml which zelda-configuration already pulls in.
+            When consumers depend on zelda-paper, they get the full Paper-aware
+            ConfigLib automatically — ConfigurationRegistry.buildSharedProperties()
+            detects BukkitConfigurationProperties at runtime and uses it.
+        -->
+        <dependency>
+            <groupId>de.exlll</groupId>
+            <artifactId>configlib-paper</artifactId>
         </dependency>
 
     </dependencies>

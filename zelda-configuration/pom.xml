@@ -25,16 +25,18 @@
             <artifactId>zelda-core</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>io.papermc.paper</groupId>
-            <artifactId>paper-api</artifactId>
-        </dependency>
-
+        <!--
+            ConfigLib YAML — platform-agnostic core.
+            Bukkit type serializers (ItemStack, Location etc.) are detected
+            at runtime via ConfigurationRegistry.buildSharedProperties()
+            when running on Paper.
+        -->
         <dependency>
             <groupId>de.exlll</groupId>
             <artifactId>configlib-yaml</artifactId>
             <version>${configlib.version}</version>
         </dependency>
+
     </dependencies>
 
 </project>

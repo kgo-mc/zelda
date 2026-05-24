@@ -2,6 +2,7 @@ package net.kgomc.zelda.outbox.module;
 
 import com.google.gson.Gson;
 import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Scheduler;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.disposables.Disposable;
 import net.kgomc.zelda.core.context.ZeldaContext;
@@ -245,6 +246,75 @@ public final class OutboxModule implements ZeldaModule, LifecycleHook {
                 );
         disposables.add(d);
     }
+
+    /**
+     * Subscribes an asynchronous handler to process events on an IO thread and delivers the result on a specified scheduler.
+     *
+     * The provided `asyncHandler` is executed on the IO thread for handling events asynchronously.
+     * The `onComplete` consumer is invoked on the specified `observeOn` scheduler after the successful
+     * processing of each event.
+     *
+     * @param eventType   the type of the events to subscribe to
+     * @param asyncHandler a consumer that processes the events on an IO thread; blocking operations can be performed here
+     * @param onComplete   a consumer that is called on the specified scheduler after successful processing of each event
+     * @param observeOn    the scheduler on which the results or `onComplete` consumer will be invoked
+     */
+    public void subscribeOnAsync(String eventType,
+                                 Consumer<OutboxEvent> asyncHandler,
+                                 Consumer<OutboxEvent> onComplete,
+                                 Scheduler observeOn) {
+        Disposable d = poller.observe(eventType)
+                .subscribeOn(ZeldaSchedulers.io())
+                .flatMap(event -> Observable.fromCallable(() -> {
+                    asyncHandler.accept(event);
+                    return event;
+                }).subscribeOn(ZeldaSchedulers.io()))
+                .observeOn(observeOn)
+                .subscribe(
+                        event -> {
+                            poller.markSuccess(event.getId());
+                            if (onComplete != null) onComplete.accept(event);
+                        },
+                        error -> logger.severe("[Zelda/Outbox] Async handler error: " + error.getMessage())
+                );
+        disposables.add(d);
+    }
+
+
+    /**
+     * Subscribes an asynchronous handler to process events on an IO thread and delivers the result on specified schedulers.
+     *
+     * The provided `asyncHandler` is executed on the specified `subscribeOn` scheduler for processing events asynchronously.
+     * The `onComplete` consumer is invoked on the specified `observeOn` scheduler after successful processing of each event.
+     *
+     * @param eventType     the type of the events to subscribe to
+     * @param asyncHandler  a consumer that processes the events asynchronously; blocking operations can be performed here
+     * @param onComplete    a consumer that is called on the specified scheduler after successful processing of each event
+     * @param observeOn     the scheduler on which the results or `onComplete` consumer will be invoked
+     * @param subscribeOn   the scheduler on which the `asyncHandler` will be executed
+     */
+    public void subscribeOnAsync(String eventType,
+                                 Consumer<OutboxEvent> asyncHandler,
+                                 Consumer<OutboxEvent> onComplete,
+                                 Scheduler observeOn,
+                                 Scheduler subscribeOn) {
+        Disposable d = poller.observe(eventType)
+                .subscribeOn(subscribeOn)
+                .flatMap(event -> Observable.fromCallable(() -> {
+                    asyncHandler.accept(event);
+                    return event;
+                }).subscribeOn(subscribeOn))
+                .observeOn(observeOn)
+                .subscribe(
+                        event -> {
+                            poller.markSuccess(event.getId());
+                            if (onComplete != null) onComplete.accept(event);
+                        },
+                        error -> logger.severe("[Zelda/Outbox] Async handler error: " + error.getMessage())
+                );
+        disposables.add(d);
+    }
+
 
     /**
      * Returns the raw {@link Observable} for full RxJava pipeline control.

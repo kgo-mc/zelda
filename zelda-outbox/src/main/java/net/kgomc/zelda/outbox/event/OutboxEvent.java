@@ -1,7 +1,7 @@
 package net.kgomc.zelda.outbox.event;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import net.kgomc.zelda.core.serialization.ZeldaGson;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -23,20 +23,18 @@ import java.util.UUID;
  */
 public final class OutboxEvent {
 
-    private static final Gson GSON = new Gson();
-
-    private final UUID      id;
-    private final String    eventType;
+    private final UUID       id;
+    private final String     eventType;
     private final JsonObject payload;
-    private final int       attempts;
-    private final Instant   createdAt;
-    private final Instant   processAt;
+    private final int        attempts;
+    private final Instant    createdAt;
+    private final Instant    processAt;
 
     public OutboxEvent(UUID id, String eventType, String payloadJson,
                        int attempts, Instant createdAt, Instant processAt) {
         this.id        = id;
         this.eventType = eventType;
-        this.payload   = GSON.fromJson(payloadJson, JsonObject.class);
+        this.payload   = ZeldaGson.get().fromJson(payloadJson, JsonObject.class);
         this.attempts  = attempts;
         this.createdAt = createdAt;
         this.processAt = processAt;
@@ -81,9 +79,32 @@ public final class OutboxEvent {
         return raw != null ? UUID.fromString(raw) : null;
     }
 
+    /**
+     * Deserializes a nested JSON object field into a POJO via {@link ZeldaGson}.
+     *
+     * <pre>{@code
+     * // Published with a nested object
+     * outbox.publish(conn, "player.purchase", Map.of(
+     *     "uuid", uuid.toString(),
+     *     "item", Map.of("id", "diamond_sword", "count", 1)
+     * ));
+     *
+     * // Retrieved in handler
+     * ItemDetails item = event.getObject("item", ItemDetails.class);
+     * }</pre>
+     *
+     * @param key  the payload field name
+     * @param type the target class to deserialize into
+     * @return deserialized object, or {@code null} if the key is absent
+     */
+    public <T> T getObject(String key, Class<T> type) {
+        if (!payload.has(key) || payload.get(key).isJsonNull()) return null;
+        return ZeldaGson.get().fromJson(payload.get(key), type);
+    }
+
     /** Returns the raw JSON payload string. */
     public String getRawPayload() {
-        return GSON.toJson(payload);
+        return ZeldaGson.get().toJson(payload);
     }
 
     @Override

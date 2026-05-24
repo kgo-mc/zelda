@@ -62,9 +62,9 @@ public final class Zelda {
             ZeldaContext ctx = ZeldaContext.get();
             ctx.getRegistry().disableAll();
         } catch (IllegalStateException ignored) {
-            // Context was never initialised — nothing to shut down
         } finally {
             ZeldaContext.reset();
+            net.kgomc.zelda.core.serialization.ZeldaGson.reset();
         }
     }
 

@@ -60,18 +60,18 @@ public final class ZeldaBuilder {
     private boolean withUI            = false;
     private boolean withInjection     = false;
     private boolean withOutbox        = false;
-    private int     outboxPollSeconds = 10;
+    private int     outboxPollSeconds = 5;
     private int     outboxBatchSize   = 50;
     private int     outboxMaxAttempts = 3;
+
+    /** Custom Gson adapters registered before ZeldaGson is built. */
+    private final java.util.List<net.kgomc.zelda.core.serialization.ZeldaGson.AdapterEntry>
+            gsonAdapters = new java.util.ArrayList<>();
 
     // User binder — populated by withInjection()
     private Object userBinder = null;
 
     ZeldaBuilder() {}
-
-    // -----------------------------------------------------------------------
-    // Central config
-    // -----------------------------------------------------------------------
 
     /**
      * Sets the central shared config directory used by all Zelda plugins on this server.
@@ -151,6 +151,34 @@ public final class ZeldaBuilder {
      */
     public ZeldaBuilder withUI() {
         this.withUI = true;
+        return this;
+    }
+
+    /**
+     * Registers a custom Gson type adapter for an exact type.
+     * Applied after all built-in adapters — can override defaults.
+     *
+     * <pre>{@code
+     * .withGsonAdapter(MyClass.class, new MyClassAdapter())
+     * }</pre>
+     */
+    public <T> ZeldaBuilder withGsonAdapter(Class<T> type, Object adapter) {
+        gsonAdapters.add(new net.kgomc.zelda.core.serialization.ZeldaGson.AdapterEntry(
+                type, adapter, false));
+        return this;
+    }
+
+    /**
+     * Registers a Gson type hierarchy adapter — matches the type and all its subclasses.
+     * Use this for interfaces or abstract base classes.
+     *
+     * <pre>{@code
+     * .withGsonHierarchyAdapter(Animal.class, new AnimalAdapter())
+     * }</pre>
+     */
+    public <T> ZeldaBuilder withGsonHierarchyAdapter(Class<T> type, Object adapter) {
+        gsonAdapters.add(new net.kgomc.zelda.core.serialization.ZeldaGson.AdapterEntry(
+                type, adapter, true));
         return this;
     }
 
@@ -254,7 +282,8 @@ public final class ZeldaBuilder {
             registry.register(createInjectionModule(userBinder));
         }
 
-        // Boot — init context then enable all modules
+        // Boot — Gson first (reflection runs once here), then context, then modules
+        net.kgomc.zelda.core.serialization.ZeldaGson.initialize(plugin.getRuntimeKind(), gsonAdapters);
         ZeldaContext.init(plugin, registry);
         registry.enableAll(ZeldaContext.get());
 

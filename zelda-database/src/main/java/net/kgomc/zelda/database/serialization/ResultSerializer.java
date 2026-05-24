@@ -1,10 +1,12 @@
 package net.kgomc.zelda.database.serialization;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import net.kgomc.zelda.core.serialization.ZeldaGson;
 import net.kgomc.zelda.database.query.RowMapper;
 
+import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -26,9 +28,10 @@ import java.util.UUID;
  */
 public final class ResultSerializer {
 
-    private static final Gson GSON = new GsonBuilder().create();
-
     private ResultSerializer() {}
+
+    /** Convenience accessor for the shared Gson instance. */
+    public static Gson gson() { return ZeldaGson.get(); }
 
     // -----------------------------------------------------------------------
     // Map mapper
@@ -65,8 +68,8 @@ public final class ResultSerializer {
     public static <T> RowMapper<T> toObject(Class<T> type) {
         return rs -> {
             Map<String, Object> row = toMap().map(rs);
-            String json = GSON.toJson(row);
-            return GSON.fromJson(json, type);
+            String json = ZeldaGson.get().toJson(row);
+            return ZeldaGson.get().fromJson(json, type);
         };
     }
 
@@ -125,7 +128,7 @@ public final class ResultSerializer {
     public static <T> RowMapper<T> fromJson(String column, Class<T> type) {
         return rs -> {
             String json = rs.getString(column);
-            return json != null ? GSON.fromJson(json, type) : null;
+            return json != null ? ZeldaGson.get().fromJson(json, type) : null;
         };
     }
 
@@ -139,6 +142,6 @@ public final class ResultSerializer {
      * }</pre>
      */
     public static String toJson(Object obj) {
-        return GSON.toJson(obj);
+        return ZeldaGson.get().toJson(obj);
     }
 }

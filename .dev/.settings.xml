@@ -1,0 +1,49 @@
+<!--
+    ~/.m2/settings.xml — add this to your local Maven settings to consume Zelda from GitHub Packages.
+
+    GitHub Packages requires authentication even for public/open-source packages.
+    Generate a Classic PAT at: https://github.com/settings/tokens
+    Required scope: read:packages
+
+    NEVER commit your token — use an environment variable instead:
+      export GITHUB_TOKEN=ghp_xxxxxxxxxxxx
+
+    Then reference it below as ${env.GITHUB_TOKEN}.
+-->
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                              https://maven.apache.org/xsd/settings-1.0.0.xsd">
+
+    <servers>
+        <server>
+            <id>zelda-github</id>
+            <username>YOUR_GITHUB_USERNAME</username>
+            <password>${env.GITHUB_TOKEN}</password>
+        </server>
+    </servers>
+
+    <profiles>
+        <profile>
+            <id>zelda</id>
+            <repositories>
+                <repository>
+                    <id>zelda-github</id>
+                    <name>Zelda GitHub Packages</name>
+                    <url>https://maven.pkg.github.com/kgo-mc/zelda</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                </repository>
+            </repositories>
+        </profile>
+    </profiles>
+
+    <activeProfiles>
+        <activeProfile>zelda</activeProfile>
+    </activeProfiles>
+
+</settings>

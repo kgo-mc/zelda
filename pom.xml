@@ -29,6 +29,16 @@
         <module>zelda-outbox</module>
     </modules>
 
+
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>Zelda GitHub Packages</name>
+            <url>https://maven.pkg.github.com/kgo-mc/zelda</url>
+        </repository>
+    </distributionManagement>
+
+
     <!-- =========================================================
          Properties — single source of truth for ALL versions
     ========================================================== -->

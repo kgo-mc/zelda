@@ -52,6 +52,7 @@ public final class ZeldaBuilder {
     private Path pluginConfigPath        = null;
     private Path paletteConfigPath       = null;
     private Path messagesConfigPath      = null;
+    private Path busConfigPath           = null;
 
     // Which modules to enable
     private boolean withDatabase      = false;
@@ -60,6 +61,7 @@ public final class ZeldaBuilder {
     private boolean withUI            = false;
     private boolean withInjection     = false;
     private boolean withOutbox        = false;
+    private boolean withBus           = false;
     private int     outboxPollSeconds = 5;
     private int     outboxBatchSize   = 50;
     private int     outboxMaxAttempts = 3;
@@ -231,6 +233,17 @@ public final class ZeldaBuilder {
         return this;
     }
 
+    public ZeldaBuilder withBus() {
+        this.withBus = true;
+        return this;
+    }
+
+    public ZeldaBuilder withBus(Path configPath) {
+        this.withBus = true;
+        this.busConfigPath = configPath;
+        return this;
+    }
+
     // -----------------------------------------------------------------------
     // Initialize
     // -----------------------------------------------------------------------
@@ -280,6 +293,13 @@ public final class ZeldaBuilder {
         // Injection must be registered LAST — it fires afterAllEnabled() to auto-bind everything
         if (withInjection) {
             registry.register(createInjectionModule(userBinder));
+        }
+
+        if(withBus){
+            Path path = busConfigPath != null
+                    ? busConfigPath
+                    : baseConfig.resolve("bus.json");
+            registry.register(createBusModule(path));
         }
 
         // Boot — Gson first (reflection runs once here), then context, then modules
@@ -371,6 +391,19 @@ public final class ZeldaBuilder {
         } catch (Exception e) {
             throw new IllegalStateException(
                     "[Zelda] zelda-ui is not on the classpath. " +
+                            "Add it as a dependency in your plugin's pom.xml.", e);
+        }
+    }
+
+    private static net.kgomc.zelda.core.module.ZeldaModule createBusModule(Path path) {
+        try {
+            return (net.kgomc.zelda.core.module.ZeldaModule)
+                    Class.forName("net.kgomc.zelda.bus.module.BusModule")
+                            .getConstructor(Path.class)
+                            .newInstance(path);
+        } catch (Exception e) {
+            throw new IllegalStateException(
+                    "[Zelda] zelda-bus is not on the classpath. " +
                             "Add it as a dependency in your plugin's pom.xml.", e);
         }
     }

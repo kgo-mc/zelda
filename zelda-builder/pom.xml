@@ -23,7 +23,7 @@
 
     <dependencies>
 
-        <!-- Zelda modules — all included in the shaded JAR -->
+        <!-- ── Zelda modules ──────────────────────────────────── -->
         <dependency>
             <groupId>net.kgomc.zelda</groupId>
             <artifactId>zelda-core</artifactId>
@@ -68,20 +68,34 @@
             <artifactId>zelda-outbox</artifactId>
             <optional>true</optional>
         </dependency>
+        <dependency>
+            <groupId>net.kgomc.zelda</groupId>
+            <artifactId>zelda-bus</artifactId>
+            <optional>true</optional>
+        </dependency>
 
-        <!--
-            Third-party deps pulled in transitively.
-            Declared explicitly here so shade can see and relocate them.
-            All marked provided=false so they ARE included in the shaded JAR.
-        -->
+        <!-- ── Third-party — shaded and relocated ─────────────── -->
 
-        <!-- HikariCP -->
         <dependency>
             <groupId>com.zaxxer</groupId>
             <artifactId>HikariCP</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.reactivex.rxjava3</groupId>
+            <artifactId>rxjava</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.nats</groupId>
+            <artifactId>jnats</artifactId>
+            <version>${nats.version}</version>
+            <optional>true</optional>
+        </dependency>
 
-        <!-- JDBC Drivers — optional, shade includes whichever is on classpath -->
+        <!-- ── JDBC Drivers — optional ────────────────────────── -->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
@@ -98,42 +112,24 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- Gson -->
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-        </dependency>
-
-        <!-- RxJava -->
-        <dependency>
-            <groupId>io.reactivex.rxjava3</groupId>
-            <artifactId>rxjava</artifactId>
-        </dependency>
-
-        <!-- ConfigLib YAML — base, platform agnostic -->
+        <!-- ── ConfigLib ──────────────────────────────────────── -->
         <dependency>
             <groupId>de.exlll</groupId>
             <artifactId>configlib-yaml</artifactId>
-            <version>${configlib.version}</version>
             <optional>true</optional>
         </dependency>
-        <!-- ConfigLib Paper — Bukkit type serializers, included when zelda-paper is on classpath -->
         <dependency>
             <groupId>de.exlll</groupId>
             <artifactId>configlib-paper</artifactId>
-            <version>${configlib.version}</version>
             <optional>true</optional>
         </dependency>
 
-        <!-- Feather DI -->
+        <!-- ── Injection ──────────────────────────────────────── -->
         <dependency>
             <groupId>org.codejargon.feather</groupId>
             <artifactId>feather</artifactId>
-            <version>${feather.version}</version>
             <optional>true</optional>
         </dependency>
-
-        <!-- JSR-330 -->
         <dependency>
             <groupId>javax.inject</groupId>
             <artifactId>javax.inject</artifactId>
@@ -141,9 +137,7 @@
             <optional>true</optional>
         </dependency>
 
-        <!--
-            Platform APIs — NOT shaded (provided by server/proxy at runtime).
-        -->
+        <!-- ── Platform APIs — NOT shaded (provided at runtime) ── -->
         <dependency>
             <groupId>io.papermc.paper</groupId>
             <artifactId>paper-api</artifactId>
@@ -155,7 +149,7 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- Testing -->
+        <!-- ── Testing ────────────────────────────────────────── -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
@@ -177,20 +171,16 @@
                             <shadedArtifactAttached>false</shadedArtifactAttached>
 
                             <relocations>
-                                <!-- Zelda internal packages — no relocation, these are the public API -->
-
                                 <!-- HikariCP -->
                                 <relocation>
                                     <pattern>com.zaxxer.hikari</pattern>
                                     <shadedPattern>net.kgomc.zelda.libs.hikari</shadedPattern>
                                 </relocation>
-
                                 <!-- Gson -->
                                 <relocation>
                                     <pattern>com.google.gson</pattern>
                                     <shadedPattern>net.kgomc.zelda.libs.gson</shadedPattern>
                                 </relocation>
-
                                 <!-- RxJava + ReactiveStreams -->
                                 <relocation>
                                     <pattern>io.reactivex.rxjava3</pattern>
@@ -200,26 +190,27 @@
                                     <pattern>org.reactivestreams</pattern>
                                     <shadedPattern>net.kgomc.zelda.libs.reactivestreams</shadedPattern>
                                 </relocation>
-
+                                <!-- NATS -->
+                                <relocation>
+                                    <pattern>io.nats</pattern>
+                                    <shadedPattern>net.kgomc.zelda.libs.nats</shadedPattern>
+                                </relocation>
                                 <!-- ConfigLib -->
                                 <relocation>
                                     <pattern>de.exlll.configlib</pattern>
                                     <shadedPattern>net.kgomc.zelda.libs.configlib</shadedPattern>
                                 </relocation>
-
                                 <!-- Feather DI -->
                                 <relocation>
                                     <pattern>org.codejargon.feather</pattern>
                                     <shadedPattern>net.kgomc.zelda.libs.feather</shadedPattern>
                                 </relocation>
-
                                 <!-- JSR-330 -->
                                 <relocation>
                                     <pattern>javax.inject</pattern>
                                     <shadedPattern>net.kgomc.zelda.libs.inject</shadedPattern>
                                 </relocation>
-
-                                <!-- SLF4J (pulled in by HikariCP) -->
+                                <!-- SLF4J (pulled in by HikariCP + jnats) -->
                                 <relocation>
                                     <pattern>org.slf4j</pattern>
                                     <shadedPattern>net.kgomc.zelda.libs.slf4j</shadedPattern>
@@ -227,7 +218,6 @@
                             </relocations>
 
                             <filters>
-                                <!-- Strip signatures — required after shading signed JARs -->
                                 <filter>
                                     <artifact>*:*</artifact>
                                     <excludes>
@@ -235,7 +225,6 @@
                                         <exclude>META-INF/*.DSA</exclude>
                                         <exclude>META-INF/*.RSA</exclude>
                                         <exclude>META-INF/MANIFEST.MF</exclude>
-                                        <!-- Keep services for JDBC driver registration -->
                                     </excludes>
                                 </filter>
                             </filters>

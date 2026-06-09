@@ -1,0 +1,16 @@
+{
+  "_comment": "Local development config — matches docker-compose.yml credentials",
+  "type": "POSTGRESQL",
+  "host": "pgbouncer",
+  "port": 5432,
+  "database": "zelda",
+  "username": "zelda",
+  "password": "zelda_dev",
+  "pool": {
+    "maximumPoolSize": 10,
+    "minimumIdle": 0,
+    "connectionTimeout": 30000,
+    "idleTimeout": 300000,
+    "maxLifetime": 0
+  }
+}

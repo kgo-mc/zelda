@@ -1,0 +1,89 @@
+services:
+
+  # ============================================================
+  # PostgreSQL 18
+  # ============================================================
+  postgres:
+    image: postgres:18-alpine
+    container_name: zelda-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: zelda
+      POSTGRES_USER: zelda
+      POSTGRES_PASSWORD: zelda_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - zelda_postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zelda -d zelda"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ============================================================
+  # PgBouncer
+  # ============================================================
+  pgbouncer:
+    image: edoburu/pgbouncer:latest
+    container_name: zelda-pgbouncer
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "6432:5432"
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: zelda
+      DB_PASSWORD: zelda_dev
+      DB_NAME: zelda
+
+      # Pool settings
+      POOL_MODE: transaction
+      MAX_CLIENT_CONN: 1000
+      DEFAULT_POOL_SIZE: 50
+
+      AUTH_TYPE: scram-sha-256
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 5432"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ============================================================
+  # NATS
+  # ============================================================
+  nats:
+    image: nats:2.10-alpine
+    container_name: zelda-nats
+    restart: unless-stopped
+    command: ["-js", "-m", "8222"]
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8222/healthz || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ============================================================
+  # NATS CLI
+  # ============================================================
+  nats-cli:
+    image: natsio/nats-box:latest
+    container_name: zelda-nats-cli
+    profiles: ["tools"]
+    environment:
+      NATS_URL: nats://nats:4222
+    depends_on:
+      nats:
+        condition: service_healthy
+    entrypoint: ["sh"]
+    stdin_open: true
+    tty: true
+
+volumes:
+  zelda_postgres_data:

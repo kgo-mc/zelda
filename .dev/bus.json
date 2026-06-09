@@ -1,0 +1,9 @@
+{
+  "serverId": "lobby-1",
+  "nats": {
+    "url": "nats://localhost:4222",
+    "connectionTimeoutSeconds": 5,
+    "maxReconnects": -1,
+    "reconnectWaitMs": 1000
+  }
+}

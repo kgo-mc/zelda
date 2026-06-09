@@ -38,6 +38,10 @@
         <module>zelda-ui</module>
         <module>zelda-injection</module>
         <module>zelda-outbox</module>
+        <module>zelda-bus</module>
+
+
+        <!-- This is last -->
         <module>zelda-builder</module>
     </modules>
 
@@ -76,10 +80,12 @@
         <!-- Injection -->
         <feather.version>1.0</feather.version>
 
+        <!-- Bus -->
+        <nats.version>2.17.3</nats.version>
+
         <!-- Testing -->
         <junit.version>5.11.4</junit.version>
         <mockito.version>5.14.2</mockito.version>
-        <feather.version>1.0</feather.version>
 
         <!-- Build plugins -->
         <maven.compiler.plugin.version>3.13.0</maven.compiler.plugin.version>
@@ -145,6 +151,11 @@
             <dependency>
                 <groupId>net.kgomc.zelda</groupId>
                 <artifactId>zelda-ui</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.kgomc.zelda</groupId>
+                <artifactId>zelda-bus</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -213,6 +224,19 @@
                 <artifactId>feather</artifactId>
                 <version>${feather.version}</version>
             </dependency>
+            <dependency>
+                <groupId>javax.inject</groupId>
+                <artifactId>javax.inject</artifactId>
+                <version>1</version>
+            </dependency>
+
+            <!-- ── Bus ──────────────────────────────────────────── -->
+            <dependency>
+                <groupId>io.nats</groupId>
+                <artifactId>jnats</artifactId>
+                <version>${nats.version}</version>
+            </dependency>
+
 
             <!-- RxJava -->
             <dependency>

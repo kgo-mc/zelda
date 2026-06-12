@@ -62,13 +62,13 @@ public final class BusConfig {
             // Write defaults so the user has a template to edit
             Files.createDirectories(path.getParent());
             try (var writer = Files.newBufferedWriter(path)) {
-                ZeldaGson.get().toJson(new BusConfig(), writer);
+                ZeldaGson.toJson(new BusConfig(), writer);
             }
             return new BusConfig();
         }
 
         try (Reader reader = Files.newBufferedReader(path)) {
-            return ZeldaGson.get().fromJson(reader, BusConfig.class);
+            return ZeldaGson.fromJson(reader, BusConfig.class);
         }
     }
 }

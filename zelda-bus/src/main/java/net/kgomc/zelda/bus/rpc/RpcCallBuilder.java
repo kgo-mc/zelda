@@ -78,15 +78,15 @@ public final class RpcCallBuilder<Req, Res> {
                 callerId,
                 def.getService(),
                 def.getMethod(),
-                ZeldaGson.get().toJson(request)
+                ZeldaGson.toJson(request)
         );
 
-        byte[] payload = ZeldaGson.get().toJson(wireRequest)
+        byte[] payload = ZeldaGson.toJson(wireRequest)
                 .getBytes(java.nio.charset.StandardCharsets.UTF_8);
 
         return transport.request(subject, payload, timeout)
                 .map(msg -> {
-                    RpcWireResponse wireResponse = ZeldaGson.get()
+                    RpcWireResponse wireResponse = ZeldaGson
                             .fromJson(msg.getDataAsString(), RpcWireResponse.class);
 
                     if (wireResponse.error() != null) {

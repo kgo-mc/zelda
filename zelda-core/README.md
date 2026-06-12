@@ -68,9 +68,18 @@ ZeldaSchedulers.newVirtualThread() // one virtual thread per subscription
 Built once at startup by `ZeldaBuilder`. Includes adapters for `UUID`, and on Paper: `Location`, `ItemStack`, `Vector`.
 
 ```java
-Gson gson = ZeldaGson.get();
-String json = ZeldaGson.get().toJson(myObject);
-MyObject obj = ZeldaGson.get().fromJson(json, MyObject.class);
+// Serialize
+String json = ZeldaGson.toJson(myObject);
+
+// Deserialize
+MyObject obj = ZeldaGson.fromJson(json, MyObject.class);
+
+// Generics
+List<MyObject> list = ZeldaGson.fromJson(json, new TypeToken<List<MyObject>>(){}.getType());
+
+// With Writer/Reader (if you added those overloads)
+ZeldaGson.toJson(myObject, writer);
+MyObject obj = ZeldaGson.fromJson(reader, MyObject.class);
 ```
 
 Custom adapters are registered at build time:

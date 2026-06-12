@@ -34,7 +34,7 @@ public final class OutboxEvent {
                        int attempts, Instant createdAt, Instant processAt) {
         this.id        = id;
         this.eventType = eventType;
-        this.payload   = ZeldaGson.get().fromJson(payloadJson, JsonObject.class);
+        this.payload   = ZeldaGson.fromJson(payloadJson, JsonObject.class);
         this.attempts  = attempts;
         this.createdAt = createdAt;
         this.processAt = processAt;
@@ -99,12 +99,12 @@ public final class OutboxEvent {
      */
     public <T> T getObject(String key, Class<T> type) {
         if (!payload.has(key) || payload.get(key).isJsonNull()) return null;
-        return ZeldaGson.get().fromJson(payload.get(key), type);
+        return ZeldaGson.fromJson(payload.get(key), type);
     }
 
     /** Returns the raw JSON payload string. */
     public String getRawPayload() {
-        return ZeldaGson.get().toJson(payload);
+        return ZeldaGson.toJson(payload);
     }
 
     @Override

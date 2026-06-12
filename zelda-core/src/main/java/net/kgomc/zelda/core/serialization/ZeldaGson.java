@@ -3,6 +3,8 @@ package net.kgomc.zelda.core.serialization;
 import com.google.gson.*;
 import net.kgomc.zelda.core.context.RuntimeKind;
 
+import java.io.IOException;
+import java.io.Reader;
 import java.lang.reflect.Type;
 import java.util.UUID;
 
@@ -13,7 +15,7 @@ import java.util.UUID;
  * {@link #initialize(RuntimeKind)} from {@code ZeldaBuilder} — this runs
  * all reflection upfront at startup rather than per-serialization call.</p>
  *
- * <p>After initialisation every {@link #get()} call is a plain volatile read
+ * <p>After initialisation every serialization call is a plain volatile read
  * with zero reflection overhead.</p>
  *
  * <h2>Included serializers</h2>
@@ -27,9 +29,8 @@ import java.util.UUID;
  * <h2>Usage</h2>
  * <pre>{@code
  * // From anywhere after Zelda.builder().initialize() completes
- * Gson gson = ZeldaGson.get();
- * String json = ZeldaGson.get().toJson(myObject);
- * MyObject obj = ZeldaGson.get().fromJson(json, MyObject.class);
+ * String json = ZeldaGson.toJson(myObject);
+ * MyObject obj = ZeldaGson.fromJson(json, MyObject.class);
  * }</pre>
  */
 public final class ZeldaGson {
@@ -76,15 +77,67 @@ public final class ZeldaGson {
     }
 
     // -----------------------------------------------------------------------
-    // Accessor
+    // Public API — no Gson type in any signature
     // -----------------------------------------------------------------------
 
     /**
-     * Returns the shared Gson instance.
+     * Serializes {@code obj} to its JSON representation.
      *
      * @throws IllegalStateException if {@link #initialize(RuntimeKind)} has not been called
      */
-    public static Gson get() {
+    public static String toJson(Object obj) {
+        return instance().toJson(obj);
+    }
+
+    /**
+     * Serializes {@code obj} to JSON using the given {@link Type} — useful for generics.
+     *
+     * @throws IllegalStateException if {@link #initialize(RuntimeKind)} has not been called
+     */
+    public static String toJson(Object obj, Type type) {
+        return instance().toJson(obj, type);
+    }
+
+    /**
+     * Deserializes {@code json} into an object of type {@code T}.
+     *
+     * @throws IllegalStateException if {@link #initialize(RuntimeKind)} has not been called
+     */
+    public static <T> T fromJson(String json, Class<T> type) {
+        return instance().fromJson(json, type);
+    }
+
+    /**
+     * Deserializes {@code json} into an object of the given {@link Type} — useful for generics.
+     *
+     * @throws IllegalStateException if {@link #initialize(RuntimeKind)} has not been called
+     */
+    public static <T> T fromJson(String json, Type type) {
+        return instance().fromJson(json, type);
+    }
+
+    /**
+     * Deserializes a {@link JsonElement} into an object of type {@code T}.
+     *
+     * @throws IllegalStateException if {@link #initialize(RuntimeKind)} has not been called
+     */
+    public static <T> T fromJson(JsonElement element, Class<T> type) {
+        return instance().fromJson(element, type);
+    }
+
+    public static void toJson(Object obj, Appendable writer) throws IOException {
+        instance().toJson(obj, writer);
+    }
+
+    public static <T> T fromJson(Reader reader, Class<T> type) {
+        return instance().fromJson(reader, type);
+    }
+
+    // -----------------------------------------------------------------------
+    // Internal accessor — Gson type stays inside this module
+    // -----------------------------------------------------------------------
+
+    static Gson instance() {
         Gson instance = INSTANCE;
         if (instance == null) {
             throw new IllegalStateException(
@@ -155,7 +208,6 @@ public final class ZeldaGson {
             Class<?> worldClass     = Class.forName("org.bukkit.World");
             Class<?> bukkitClass    = Class.forName("org.bukkit.Bukkit");
 
-            // Cache all method references at init time
             java.lang.reflect.Method getWorld  = locationClass.getMethod("getWorld");
             java.lang.reflect.Method worldName = worldClass.getMethod("getName");
             java.lang.reflect.Method getX      = locationClass.getMethod("getX");

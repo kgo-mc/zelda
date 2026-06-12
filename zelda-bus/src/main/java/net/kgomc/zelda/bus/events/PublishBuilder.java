@@ -74,10 +74,10 @@ public final class PublishBuilder<T> {
                 serverId,
                 def.getTopic(),
                 Instant.now().toEpochMilli(),
-                ZeldaGson.get().toJson(payload)
+                ZeldaGson.toJson(payload)
         );
 
-        byte[] bytes = ZeldaGson.get().toJson(envelope)
+        byte[] bytes = ZeldaGson.toJson(envelope)
                 .getBytes(java.nio.charset.StandardCharsets.UTF_8);
 
         transport.publish(subject, bytes);

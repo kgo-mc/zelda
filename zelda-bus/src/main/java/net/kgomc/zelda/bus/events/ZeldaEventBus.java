@@ -120,10 +120,10 @@ public final class ZeldaEventBus {
             net.kgomc.zelda.bus.transport.TransportMessage msg,
             ZeldaEventDef<T> def
     ) {
-        PublishBuilder.WireEnvelope envelope = ZeldaGson.get()
+        PublishBuilder.WireEnvelope envelope = ZeldaGson
                 .fromJson(msg.getDataAsString(), PublishBuilder.WireEnvelope.class);
 
-        T payload = ZeldaGson.get().fromJson(envelope.payload(), def.getPayloadType());
+        T payload = ZeldaGson.fromJson(envelope.payload(), def.getPayloadType());
 
         return new EventMessage<>(
                 payload,

@@ -120,10 +120,10 @@ public final class ZeldaRpc {
             ZeldaRpcDef<Req, Res> def,
             java.util.function.Function<Req, Single<Res>> handler
     ) {
-        RpcCallBuilder.RpcWireRequest wireRequest = ZeldaGson.get()
+        RpcCallBuilder.RpcWireRequest wireRequest = ZeldaGson
                 .fromJson(msg.getDataAsString(), RpcCallBuilder.RpcWireRequest.class);
 
-        Req request = ZeldaGson.get().fromJson(wireRequest.payload(), def.getRequestType());
+        Req request = ZeldaGson.fromJson(wireRequest.payload(), def.getRequestType());
 
         // Each request gets its own disposable — added to the composite so it's
         // cleaned up on shutdown. Once the Single terminates (success or error)
@@ -135,11 +135,11 @@ public final class ZeldaRpc {
                             RpcCallBuilder.RpcWireResponse wireResponse =
                                     new RpcCallBuilder.RpcWireResponse(
                                             wireRequest.correlationId(),
-                                            ZeldaGson.get().toJson(response),
+                                            ZeldaGson.toJson(response),
                                             null
                                     );
                             transport.reply(msg,
-                                    ZeldaGson.get().toJson(wireResponse)
+                                    ZeldaGson.toJson(wireResponse)
                                             .getBytes(java.nio.charset.StandardCharsets.UTF_8));
                         },
                         error -> {
@@ -150,7 +150,7 @@ public final class ZeldaRpc {
                                             error.getMessage()
                                     );
                             transport.reply(msg,
-                                    ZeldaGson.get().toJson(wireResponse)
+                                    ZeldaGson.toJson(wireResponse)
                                             .getBytes(java.nio.charset.StandardCharsets.UTF_8));
                             logger.warning("[Zelda/RPC] Handler threw for " + def
                                     + ": " + error.getMessage());

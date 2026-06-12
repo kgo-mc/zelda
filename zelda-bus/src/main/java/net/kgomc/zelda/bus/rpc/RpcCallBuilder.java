@@ -93,7 +93,7 @@ public final class RpcCallBuilder<Req, Res> {
                         throw new RpcException(def + " failed: " + wireResponse.error());
                     }
 
-                    return ZeldaGson.get().fromJson(wireResponse.payload(), def.getResponseType());
+                    return ZeldaGson.fromJson(wireResponse.payload(), def.getResponseType());
                 })
                 .subscribeOn(ZeldaSchedulers.io());
     }

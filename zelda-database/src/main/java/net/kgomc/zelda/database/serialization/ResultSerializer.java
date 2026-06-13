@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import net.kgomc.zelda.core.serialization.ZeldaGson;
 import net.kgomc.zelda.database.query.RowMapper;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -71,7 +72,9 @@ public final class ResultSerializer {
     public static <T> RowMapper<T> toObject(Class<T> type, CoercionRegistry registry) {
         Supplier<T> factory = () -> {
             try {
-                return type.getDeclaredConstructor().newInstance();
+                Constructor<T> ctor = type.getDeclaredConstructor();
+                ctor.setAccessible(true);
+                return ctor.newInstance();
             } catch (NoSuchMethodException e) {
                 throw new MappingException(
                         "No no-arg constructor found on " + type.getName() +
@@ -91,7 +94,9 @@ public final class ResultSerializer {
     public static <T> RowMapper<T> toObject(Class<T> type, CoercionRegistry registry, MappingStrategy strategy) {
         Supplier<T> factory = () -> {
             try {
-                return type.getDeclaredConstructor().newInstance();
+                Constructor<T> ctor = type.getDeclaredConstructor();
+                ctor.setAccessible(true);
+                return ctor.newInstance();
             } catch (NoSuchMethodException e) {
                 throw new MappingException(
                         "No no-arg constructor found on " + type.getName() +

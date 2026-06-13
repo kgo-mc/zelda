@@ -142,25 +142,25 @@ public final class CoercionRegistry {
 
     private void registerDefaults() {
         // --- Primitives & boxed ---
-        register(String.class,     (rs, col) -> rs.getString(col));
-        register(int.class,        (rs, col) -> rs.getInt(col));
+        register(String.class, ResultSet::getString);
+        register(int.class, ResultSet::getInt);
         register(Integer.class,    (rs, col) -> { int v = rs.getInt(col); return rs.wasNull() ? null : v; });
-        register(long.class,       (rs, col) -> rs.getLong(col));
+        register(long.class, ResultSet::getLong);
         register(Long.class,       (rs, col) -> { long v = rs.getLong(col); return rs.wasNull() ? null : v; });
-        register(double.class,     (rs, col) -> rs.getDouble(col));
+        register(double.class, ResultSet::getDouble);
         register(Double.class,     (rs, col) -> { double v = rs.getDouble(col); return rs.wasNull() ? null : v; });
-        register(float.class,      (rs, col) -> rs.getFloat(col));
+        register(float.class, ResultSet::getFloat);
         register(Float.class,      (rs, col) -> { float v = rs.getFloat(col); return rs.wasNull() ? null : v; });
-        register(boolean.class,    (rs, col) -> rs.getBoolean(col));
+        register(boolean.class, ResultSet::getBoolean);
         register(Boolean.class,    (rs, col) -> { boolean v = rs.getBoolean(col); return rs.wasNull() ? null : v; });
-        register(short.class,      (rs, col) -> rs.getShort(col));
+        register(short.class, ResultSet::getShort);
         register(Short.class,      (rs, col) -> { short v = rs.getShort(col); return rs.wasNull() ? null : v; });
-        register(byte.class,       (rs, col) -> rs.getByte(col));
+        register(byte.class, ResultSet::getByte);
         register(Byte.class,       (rs, col) -> { byte v = rs.getByte(col); return rs.wasNull() ? null : v; });
-        register(byte[].class,     (rs, col) -> rs.getBytes(col));
+        register(byte[].class, ResultSet::getBytes);
 
         // --- Precision types ---
-        register(BigDecimal.class, (rs, col) -> rs.getBigDecimal(col));
+        register(BigDecimal.class, ResultSet::getBigDecimal);
         register(BigInteger.class, (rs, col) -> {
             BigDecimal bd = rs.getBigDecimal(col);
             return bd != null ? bd.toBigIntegerExact() : null;

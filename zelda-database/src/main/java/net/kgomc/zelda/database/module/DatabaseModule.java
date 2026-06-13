@@ -51,6 +51,7 @@ public final class DatabaseModule implements ZeldaModule {
     private QueryRunner     runner;
     private LockManager     lockManager;
     private MigrationRunner migrationRunner;
+    private Logger          logger;
 
     public DatabaseModule(Path configPath) {
         this.configPath = configPath;
@@ -66,7 +67,7 @@ public final class DatabaseModule implements ZeldaModule {
     @Override
     public void onEnable(ZeldaContext context) {
         context.getLogger().info("[Zelda/DB] Loading config from: " + configPath);
-
+        this.logger = context.getLogger();
         try {
             config = DatabaseConfig.load(configPath);
         } catch (IOException e) {
@@ -86,6 +87,13 @@ public final class DatabaseModule implements ZeldaModule {
 
     @Override
     public void onDisable() {
+        if(this.runner != null) {
+            try {
+                this.runner.close();
+            } catch (Exception e) {
+                logger.severe("[Zelda/DB] Failed to close QueryRunner: [ " + e.getMessage() + "]");
+            }
+        }
         if (dataSource != null) dataSource.close();
     }
 

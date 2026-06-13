@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -43,11 +44,11 @@ import java.util.logging.Logger;
  * });
  * }</pre>
  */
-public final class QueryRunner {
+public final class QueryRunner implements AutoCloseable {
 
     private final ZeldaDataSource dataSource;
     final Logger logger;   // package-accessible for DatabaseModule.migrations()
-    private final Executor asyncExecutor;
+    private final ExecutorService asyncExecutor;
 
     public QueryRunner(ZeldaDataSource dataSource, Logger logger) {
         this.dataSource    = dataSource;
@@ -281,5 +282,10 @@ public final class QueryRunner {
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "[Zelda/DB] Rollback failed", e);
         }
+    }
+
+    @Override
+    public void close() throws Exception {
+        asyncExecutor.shutdown();
     }
 }

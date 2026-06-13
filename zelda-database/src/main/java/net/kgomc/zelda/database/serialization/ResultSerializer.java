@@ -4,12 +4,14 @@ import com.google.gson.Gson;
 import net.kgomc.zelda.core.serialization.ZeldaGson;
 import net.kgomc.zelda.database.query.RowMapper;
 
+import java.lang.reflect.Field;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 /**
  * Factory for common {@link RowMapper} implementations.
@@ -55,19 +57,88 @@ public final class ResultSerializer {
     // -----------------------------------------------------------------------
 
     /**
-     * Maps each row to a POJO of type {@code T} by first converting the row
-     * to a {@code Map<String, Object>} and then deserialising via Gson.
-     *
-     * <p>Column names must match the POJO field names (or Gson {@code @SerializedName}).</p>
-     *
-     * @param type the target class
+     * Maps each row to a POJO of type {@code T} using the global {@link CoercionRegistry}.
+     * Resolves fields by matching column labels (supports snake_case → camelCase).
      */
     public static <T> RowMapper<T> toObject(Class<T> type) {
-        return rs -> {
-            Map<String, Object> row = toMap().map(rs);
-            String json = ZeldaGson.toJson(row);
-            return ZeldaGson.fromJson(json, type);
+        return toObject(type, CoercionRegistry.global(), MappingStrategy.STRICT);
+    }
+
+    public static <T> RowMapper<T> toObject(Class<T> type, MappingStrategy strategy) {
+        return toObject(type, CoercionRegistry.global(), strategy);
+    }
+
+    public static <T> RowMapper<T> toObject(Class<T> type, CoercionRegistry registry) {
+        Supplier<T> factory = () -> {
+            try {
+                return type.getDeclaredConstructor().newInstance();
+            } catch (NoSuchMethodException e) {
+                throw new MappingException(
+                        "No no-arg constructor found on " + type.getName() +
+                                ". Use ResultSerializer.toObject(Supplier<T>) instead.", e);
+            } catch (Exception e) {
+                throw new MappingException(
+                        "Failed to instantiate " + type.getName(), e);
+            }
         };
+        return toObject(factory, registry, MappingStrategy.STRICT);
+    }
+
+    /**
+     * Maps each row to a POJO using a custom {@link CoercionRegistry}.
+     * Use this for module-scoped or test-scoped coercions.
+     */
+    public static <T> RowMapper<T> toObject(Class<T> type, CoercionRegistry registry, MappingStrategy strategy) {
+        Supplier<T> factory = () -> {
+            try {
+                return type.getDeclaredConstructor().newInstance();
+            } catch (NoSuchMethodException e) {
+                throw new MappingException(
+                        "No no-arg constructor found on " + type.getName() +
+                                ". Use ResultSerializer.toObject(Supplier<T>) instead.", e);
+            } catch (Exception e) {
+                throw new MappingException(
+                        "Failed to instantiate " + type.getName(), e);
+            }
+        };
+        return toObject(factory, registry, strategy);
+    }
+
+    public static <T> RowMapper<T> toObject(Supplier<T> factory) {
+        return toObject(factory, CoercionRegistry.global());
+    }
+
+    public static <T> RowMapper<T> toObject(Supplier<T> factory, MappingStrategy strategy) {
+        return toObject(factory, CoercionRegistry.global(), strategy);
+    }
+
+    public static <T> RowMapper<T> toObject(Supplier<T> factory, CoercionRegistry registry) {
+        return toObject(factory, registry, MappingStrategy.STRICT);
+    }
+
+    public static <T> RowMapper<T> toObject(Supplier<T> factory, CoercionRegistry registry, MappingStrategy strategy) {
+        FieldCache cache = new FieldCache();
+        return rs -> {
+            ResultSetMetaData meta = rs.getMetaData();
+            int cols = meta.getColumnCount();
+
+            cache.resolveIfNeeded(factory, meta, cols, strategy);
+
+            T instance = factory.get();
+            for (int i = 1; i <= cols; i++) {
+                Field field = cache.fields[i];
+                if (field == null) {
+                    continue;
+                }
+                try {
+                    field.set(instance, registry.coerce(rs, i, field.getType()));
+                } catch (Exception e) {
+                    throw new MappingException("Failed to map column " + meta.getColumnLabel(i), e);
+                }
+            }
+            return instance;
+        };
+
     }
 
     // -----------------------------------------------------------------------

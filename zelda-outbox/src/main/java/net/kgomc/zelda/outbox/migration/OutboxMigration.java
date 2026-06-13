@@ -17,6 +17,12 @@ import java.sql.Statement;
  */
 public final class OutboxMigration implements IMigration {
 
+    private final String schema;
+
+    public OutboxMigration(String schema) {
+        this.schema = schema;
+    }
+
     @Override
     public int getVersion() { return 9000; }
 
@@ -31,7 +37,7 @@ public final class OutboxMigration implements IMigration {
 
             // Main outbox table
             st.execute("""
-                CREATE TABLE IF NOT EXISTS zelda_outbox (
+                CREATE TABLE IF NOT EXISTS "%s".zelda_outbox (
                     id           VARCHAR(36)     NOT NULL PRIMARY KEY,
                     event_type   VARCHAR(255)    NOT NULL,
                     payload      %s              NOT NULL,
@@ -42,17 +48,21 @@ public final class OutboxMigration implements IMigration {
                     process_at   TIMESTAMP       NOT NULL,
                     processed_at TIMESTAMP
                 )
-                """.formatted(payloadColType));
+                """.formatted(
+                        schema,
+                        payloadColType));
 
             // Index for efficient polling — pending events due for processing
             st.execute("""
                 CREATE INDEX IF NOT EXISTS idx_outbox_poll
-                    ON zelda_outbox (status, process_at)
-                """);
+                    ON "%s".zelda_outbox (status, process_at)
+                """
+                    .formatted(schema)
+            );
 
             // Dead letter table
             st.execute("""
-                CREATE TABLE IF NOT EXISTS zelda_outbox_dead (
+                CREATE TABLE IF NOT EXISTS "%s".zelda_outbox_dead (
                     id           VARCHAR(36)     NOT NULL PRIMARY KEY,
                     event_type   VARCHAR(255)    NOT NULL,
                     payload      %s              NOT NULL,
@@ -62,7 +72,11 @@ public final class OutboxMigration implements IMigration {
                     failed_at    TIMESTAMP       NOT NULL,
                     last_error   TEXT
                 )
-                """.formatted(payloadColType));
+                """.formatted(
+                        schema,
+                        payloadColType
+            ));
         }
     }
+
 }

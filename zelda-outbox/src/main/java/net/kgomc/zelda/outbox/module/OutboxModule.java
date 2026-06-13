@@ -77,16 +77,12 @@ public final class OutboxModule implements ZeldaModule, LifecycleHook {
 
     private static final Gson GSON = new Gson();
 
-    private static final String INSERT_SQL = """
-        INSERT INTO zelda_outbox
-            (id, event_type, payload, status, attempts, max_attempts, created_at, process_at)
-        VALUES (?, ?, ?, 'PENDING', 0, ?, ?, ?)
-        """;
 
     private final int pollIntervalSeconds;
     private final int batchSize;
     private final int defaultMaxAttempts;
 
+    private String schema;
     private ZeldaContext context;
     private DatabaseModule dbModule;
     private QueryRunner    runner;
@@ -96,14 +92,15 @@ public final class OutboxModule implements ZeldaModule, LifecycleHook {
     /** Tracks all subscriptions so they can be disposed on shutdown */
     private final CompositeDisposable disposables = new CompositeDisposable();
 
-    public OutboxModule(int pollIntervalSeconds, int batchSize, int defaultMaxAttempts) {
+    public OutboxModule(int pollIntervalSeconds, int batchSize, int defaultMaxAttempts, String schema) {
         this.pollIntervalSeconds = pollIntervalSeconds;
         this.batchSize           = batchSize;
         this.defaultMaxAttempts  = defaultMaxAttempts;
+        this.schema              = schema;
     }
 
-    public OutboxModule() {
-        this(5, 50, 3);
+    public OutboxModule(String schema) {
+        this(5, 50, 3, schema);
     }
 
     // -----------------------------------------------------------------------
@@ -145,12 +142,13 @@ public final class OutboxModule implements ZeldaModule, LifecycleHook {
         // Run outbox migration (locked — safe against concurrent nodes)
         logger.info("[Zelda/Outbox] Running outbox migration...");
         dbModule.migrations()
-                .register(new OutboxMigration())
+                .schema(schema)
+                .register(new OutboxMigration(schema))
                 .run();
 
         // Start poller — uses advisory lock per poll batch
         poller = new OutboxPoller(runner, dbModule.getLockManager(), logger,
-                pollIntervalSeconds, batchSize);
+                pollIntervalSeconds, batchSize, schema);
         poller.start();
 
         logger.info("[Zelda/Outbox] Ready — poll=" + pollIntervalSeconds
@@ -171,7 +169,7 @@ public final class OutboxModule implements ZeldaModule, LifecycleHook {
 
     public void publish(Connection conn, String eventType, Map<String, Object> payload,
                         Instant processAt, int maxAttempts) {
-        try (PreparedStatement ps = conn.prepareStatement(INSERT_SQL)) {
+        try (PreparedStatement ps = conn.prepareStatement(insertSql())) {
             ps.setString(1, UUID.randomUUID().toString());
             ps.setString(2, eventType);
             ps.setString(3, GSON.toJson(payload));
@@ -327,4 +325,12 @@ public final class OutboxModule implements ZeldaModule, LifecycleHook {
 
     /** Returns the raw poller for advanced use cases. */
     public OutboxPoller getPoller() { return poller; }
+
+    private String insertSql() {
+        return """
+        INSERT INTO "%s".zelda_outbox
+            (id, event_type, payload, status, attempts, max_attempts, created_at, process_at)
+        VALUES (?, ?, ?, 'PENDING', 0, ?, ?, ?)
+        """.formatted(schema);
+    }
 }

@@ -1,6 +1,8 @@
 package net.kgomc.zelda.database.migration;
 
+import net.kgomc.zelda.core.context.ZeldaContext;
 import net.kgomc.zelda.database.connection.ZeldaDataSource;
+import net.kgomc.zelda.database.conventions.IConventions;
 import net.kgomc.zelda.database.locking.LockManager;
 import net.kgomc.zelda.database.locking.ZeldaLock;
 
@@ -32,12 +34,10 @@ import java.util.logging.Logger;
  */
 public final class MigrationRunner {
 
-    private static final String HISTORY_TABLE  = "zelda_migrations";
-    private static final String MIGRATION_LOCK = "zelda:migration";
-
     /** Seconds to wait for the migration lock before giving up. */
     private static final int LOCK_TIMEOUT_SECONDS = 60;
 
+    private String schema = "public";
     private final ZeldaDataSource  dataSource;
     private final LockManager      lockManager;
     private final Logger           logger;
@@ -79,6 +79,11 @@ public final class MigrationRunner {
         return this;
     }
 
+    public MigrationRunner schema(String schema) {
+        this.schema = schema;
+        return this;
+    }
+
     /**
      * Registers multiple migrations at once.
      */
@@ -103,10 +108,22 @@ public final class MigrationRunner {
      * @throws MigrationException if the lock cannot be acquired or any migration fails
      */
     public void run() {
-        logger.info("[Zelda/Migrations] Acquiring migration lock ('" + MIGRATION_LOCK
+        var migScehma = schema;
+        if(migScehma == null || migScehma.isBlank()) {
+            migScehma = "public";
+        }
+
+        if(migScehma.equals("public")) {
+            logger.warning("[Zelda/Migrations] Running migrations in public schema. THIS IS NOT AT ALL ADVISED BCS, MULTIPLE PLUGINS WILL EXPOSE THE MIGRATION");
+        }
+
+        schema = migScehma;
+
+        var migLock = migrationLock();
+        logger.info("[Zelda/Migrations] Acquiring migration lock ('" + migLock
                 + "', timeout=" + LOCK_TIMEOUT_SECONDS + "s)...");
 
-        try (ZeldaLock lock = lockManager.advisory(MIGRATION_LOCK, LOCK_TIMEOUT_SECONDS)) {
+        try (ZeldaLock lock = lockManager.advisory(migLock, LOCK_TIMEOUT_SECONDS)) {
             logger.info("[Zelda/Migrations] Lock acquired. Checking pending migrations...");
             runLocked();
         } catch (MigrationException e) {
@@ -148,13 +165,17 @@ public final class MigrationRunner {
     private void ensureHistoryTable() {
         try (Connection conn = dataSource.getConnection();
              Statement st = conn.createStatement()) {
+            String historyTable = historyTable();
+            logger.info("[Zelda/Migrations] Ensuring migration history table "+historyTable+" exists...");
             st.execute("""
-                CREATE TABLE IF NOT EXISTS %s (
-                    version     INT          NOT NULL PRIMARY KEY,
-                    description VARCHAR(255) NOT NULL,
-                    applied_at  TIMESTAMP    NOT NULL
-                )
-                """.formatted(HISTORY_TABLE));
+            CREATE TABLE IF NOT EXISTS %s (
+                version     INT          NOT NULL,
+                artifact    VARCHAR(100) NOT NULL,
+                description VARCHAR(255) NOT NULL,
+                applied_at  TIMESTAMP    NOT NULL,
+                PRIMARY KEY (version, artifact)
+            )
+    """.formatted(historyTable()));
         } catch (SQLException e) {
             throw new MigrationException("Failed to create migration history table", e);
         }
@@ -163,9 +184,12 @@ public final class MigrationRunner {
     private Set<Integer> loadAppliedVersions() {
         Set<Integer> versions = new HashSet<>();
         try (Connection conn = dataSource.getConnection();
-             Statement st = conn.createStatement();
-             ResultSet rs = st.executeQuery("SELECT version FROM " + HISTORY_TABLE)) {
-            while (rs.next()) versions.add(rs.getInt("version"));
+             PreparedStatement ps = conn.prepareStatement(
+                     "SELECT version FROM " + historyTable() + " WHERE artifact = ?")) {
+            ps.setString(1, ZeldaContext.get().getPlugin().getName());
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) versions.add(rs.getInt("version"));
+            }
         } catch (SQLException e) {
             throw new MigrationException("Failed to load applied migration versions", e);
         }
@@ -200,10 +224,11 @@ public final class MigrationRunner {
 
     private void recordApplied(Connection conn, IMigration migration) throws SQLException {
         try (PreparedStatement ps = conn.prepareStatement(
-                "INSERT INTO " + HISTORY_TABLE + " (version, description, applied_at) VALUES (?, ?, ?)")) {
+                "INSERT INTO " + historyTable() + " (version, artifact, description, applied_at) VALUES (?, ?, ?, ?)")) {
             ps.setInt(1, migration.getVersion());
-            ps.setString(2, migration.getDescription());
-            ps.setTimestamp(3, Timestamp.from(Instant.now()));
+            ps.setString(2, ZeldaContext.get().getPlugin().getName());
+            ps.setString(3, migration.getDescription());
+            ps.setTimestamp(4, Timestamp.from(Instant.now()));
             ps.executeUpdate();
         }
     }
@@ -214,5 +239,13 @@ public final class MigrationRunner {
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "[Zelda/Migrations] Rollback failed", e);
         }
+    }
+
+    private String historyTable() {
+        return IConventions.POSTGRES.tableName(schema, "zelda_migrations");
+    }
+
+    private String migrationLock() {
+        return "zelda:migration:" + schema;
     }
 }

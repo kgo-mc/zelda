@@ -29,48 +29,13 @@ import java.util.logging.Logger;
  */
 public final class OutboxPoller {
 
-    private static final Gson GSON = new Gson();
-
-    private static final String POLL_SQL = """
-        SELECT id, event_type, payload, attempts, max_attempts, created_at, process_at
-        FROM zelda_outbox
-        WHERE status = 'PENDING' AND process_at <= ?
-        ORDER BY process_at ASC
-        LIMIT ?
-        """;
-
-    private static final String MARK_PROCESSING = """
-        UPDATE zelda_outbox SET status = 'PROCESSING' WHERE id = ?
-        """;
-
-    private static final String MARK_DONE = """
-        UPDATE zelda_outbox SET status = 'DONE', processed_at = ? WHERE id = ?
-        """;
-
-    private static final String MARK_RETRY = """
-        UPDATE zelda_outbox
-        SET status = 'PENDING', attempts = ?, process_at = ?
-        WHERE id = ?
-        """;
-
-    private static final String MOVE_TO_DEAD = """
-        INSERT INTO zelda_outbox_dead
-            (id, event_type, payload, attempts, max_attempts, created_at, failed_at, last_error)
-        SELECT id, event_type, payload, attempts, max_attempts, created_at, ?, ?
-        FROM zelda_outbox WHERE id = ?
-        """;
-
-    private static final String DELETE_FROM_OUTBOX = """
-        DELETE FROM zelda_outbox WHERE id = ?
-        """;
-
     private final QueryRunner runner;
     private final LockManager lockManager;
     private final Logger      logger;
     private final int         pollIntervalSeconds;
     private final int         batchSize;
 
-    private static final String POLL_LOCK = "zelda:outbox:poll";
+
 
     /** Emits every event polled — subscribers filter by type */
     private final PublishSubject<OutboxEvent> subject = PublishSubject.create();
@@ -81,13 +46,55 @@ public final class OutboxPoller {
 
     private ScheduledFuture<?> pollTask;
 
+    private final String pollLock;
+    private final String pollSql;
+    private final String markProcessing;
+    private final String markDone;
+    private final String markRetry;
+    private final String moveToDead;
+    private final String deleteFromOutbox;
+
     public OutboxPoller(QueryRunner runner, LockManager lockManager, Logger logger,
-                        int pollIntervalSeconds, int batchSize) {
+                        int pollIntervalSeconds, int batchSize, String schema) {
         this.runner              = runner;
         this.lockManager         = lockManager;
         this.logger              = logger;
         this.pollIntervalSeconds = pollIntervalSeconds;
         this.batchSize           = batchSize;
+        this.pollLock            = "zelda:outbox:poll:" + schema;
+
+        this.pollSql = """
+            SELECT id, event_type, payload, attempts, max_attempts, created_at, process_at
+            FROM "%s".zelda_outbox
+            WHERE status = 'PENDING' AND process_at <= ?
+            ORDER BY process_at ASC
+            LIMIT ?
+            """.formatted(schema);
+
+        this.markProcessing = """
+            UPDATE "%s".zelda_outbox SET status = 'PROCESSING' WHERE id = ?
+            """.formatted(schema);
+
+        this.markDone = """
+            UPDATE "%s".zelda_outbox SET status = 'DONE', processed_at = ? WHERE id = ?
+            """.formatted(schema);
+
+        this.markRetry = """
+            UPDATE "%s".zelda_outbox
+            SET status = 'PENDING', attempts = ?, process_at = ?
+            WHERE id = ?
+            """.formatted(schema);
+
+        this.moveToDead = """
+            INSERT INTO "%s".zelda_outbox_dead
+                (id, event_type, payload, attempts, max_attempts, created_at, failed_at, last_error)
+            SELECT id, event_type, payload, attempts, max_attempts, created_at, ?, ?
+            FROM "%s".zelda_outbox WHERE id = ?
+            """.formatted(schema, schema);
+
+        this.deleteFromOutbox = """
+            DELETE FROM "%s".zelda_outbox WHERE id = ?
+            """.formatted(schema);
     }
 
     // -----------------------------------------------------------------------
@@ -138,7 +145,7 @@ public final class OutboxPoller {
 
     private void poll() {
         // Non-blocking try — if another node is already polling, skip this cycle
-        lockManager.tryAdvisory(POLL_LOCK).ifPresent(lock -> {
+        lockManager.tryAdvisory(pollLock).ifPresent(lock -> {
             try (lock) {
                 List<OutboxEvent> events = fetchPending();
                 if (events.isEmpty()) return;
@@ -156,7 +163,7 @@ public final class OutboxPoller {
     }
 
     private List<OutboxEvent> fetchPending() {
-        return runner.query(POLL_SQL,
+        return runner.query(pollSql,
                 rs -> new OutboxEvent(
                         UUID.fromString(rs.getString("id")),
                         rs.getString("event_type"),
@@ -176,7 +183,7 @@ public final class OutboxPoller {
 
     public void markSuccess(UUID eventId) {
         try {
-            runner.update(MARK_DONE, Timestamp.from(Instant.now()), eventId.toString());
+            runner.update(markDone, Timestamp.from(Instant.now()), eventId.toString());
         } catch (Exception e) {
             logger.log(Level.WARNING, "[Zelda/Outbox] Failed to mark event DONE: " + eventId, e);
         }
@@ -193,7 +200,7 @@ public final class OutboxPoller {
             Instant nextProcess = Instant.now().plusSeconds(backoffSeconds);
 
             try {
-                runner.update(MARK_RETRY,
+                runner.update(markRetry,
                         nextAttempts,
                         Timestamp.from(nextProcess),
                         event.getId().toString()
@@ -210,13 +217,13 @@ public final class OutboxPoller {
     private void deadLetter(OutboxEvent event, String lastError) {
         try {
             runner.transaction(conn -> {
-                try (PreparedStatement insert = conn.prepareStatement(MOVE_TO_DEAD)) {
+                try (PreparedStatement insert = conn.prepareStatement(moveToDead)) {
                     insert.setTimestamp(1, Timestamp.from(Instant.now()));
                     insert.setString(2, lastError != null ? lastError.substring(0, Math.min(lastError.length(), 1000)) : null);
                     insert.setString(3, event.getId().toString());
                     insert.executeUpdate();
                 }
-                try (PreparedStatement delete = conn.prepareStatement(DELETE_FROM_OUTBOX)) {
+                try (PreparedStatement delete = conn.prepareStatement(deleteFromOutbox)) {
                     delete.setString(1, event.getId().toString());
                     delete.executeUpdate();
                 }
@@ -229,6 +236,6 @@ public final class OutboxPoller {
     }
 
     private void markProcessing(UUID eventId) {
-        runner.update(MARK_PROCESSING, eventId.toString());
+        runner.update(markProcessing, eventId.toString());
     }
 }

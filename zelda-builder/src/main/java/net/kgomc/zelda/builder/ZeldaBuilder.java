@@ -65,6 +65,7 @@ public final class ZeldaBuilder {
     private int     outboxPollSeconds = 5;
     private int     outboxBatchSize   = 50;
     private int     outboxMaxAttempts = 3;
+    private String  outboxSchema      = null;
 
     /** Custom Gson adapters registered before ZeldaGson is built. */
     private final java.util.List<net.kgomc.zelda.core.serialization.ZeldaGson.AdapterEntry>
@@ -185,17 +186,19 @@ public final class ZeldaBuilder {
     }
 
     /** Enables the outbox module with defaults (5s poll, batch 50, 3 max attempts). */
-    public ZeldaBuilder withOutbox() {
+    public ZeldaBuilder withOutbox(String schema) {
         this.withOutbox = true;
+        this.outboxSchema = schema;
         return this;
     }
 
     /** Enables the outbox module with custom settings. */
-    public ZeldaBuilder withOutbox(int pollIntervalSeconds, int batchSize, int maxAttempts) {
+    public ZeldaBuilder withOutbox(int pollIntervalSeconds, int batchSize, int maxAttempts, String schema) {
         this.withOutbox        = true;
         this.outboxPollSeconds = pollIntervalSeconds;
         this.outboxBatchSize   = batchSize;
         this.outboxMaxAttempts = maxAttempts;
+        this.outboxSchema = schema;
         return this;
     }
 
@@ -287,7 +290,7 @@ public final class ZeldaBuilder {
         }
 
         if (withOutbox) {
-            registry.register(createOutboxModule(outboxPollSeconds, outboxBatchSize, outboxMaxAttempts));
+            registry.register(createOutboxModule(outboxPollSeconds, outboxBatchSize, outboxMaxAttempts, outboxSchema));
         }
 
         // Injection must be registered LAST — it fires afterAllEnabled() to auto-bind everything
@@ -356,12 +359,12 @@ public final class ZeldaBuilder {
     }
 
     private static net.kgomc.zelda.core.module.ZeldaModule createOutboxModule(
-            int pollSeconds, int batchSize, int maxAttempts) {
+            int pollSeconds, int batchSize, int maxAttempts, String schema) {
         try {
             return (net.kgomc.zelda.core.module.ZeldaModule)
                     Class.forName("net.kgomc.zelda.outbox.module.OutboxModule")
-                            .getConstructor(int.class, int.class, int.class)
-                            .newInstance(pollSeconds, batchSize, maxAttempts);
+                            .getConstructor(int.class, int.class, int.class, String.class)
+                            .newInstance(pollSeconds, batchSize, maxAttempts, schema);
         } catch (Exception e) {
             throw new IllegalStateException(
                     "[Zelda] zelda-outbox is not on the classpath. " +

@@ -1,6 +1,7 @@
 package net.kgomc.zelda.database.migration;
 
 import net.kgomc.zelda.database.config.DatabaseType;
+import net.kgomc.zelda.database.conventions.IConventions;
 
 import java.sql.Connection;
 
@@ -38,6 +39,32 @@ import java.sql.Connection;
  * }</pre>
  */
 public interface IMigration {
+
+    /**
+     * A constant representing PostgreSQL-specific naming conventions
+     * defined by the {@link IConventions} interface.
+     *
+     * This constant provides methods for generating table and column names
+     * that adhere to PostgreSQL database standards, including transformations
+     * based on schemas, entity classes, and other parameters.
+     *
+     * It is typically used to enforce consistent and database-appropriate
+     * naming conventions in migrations, schemas, and SQL interactions
+     * within PostgreSQL databases.
+     */
+    IConventions POSTGRES = IConventions.POSTGRES;
+
+    /**
+     * A constant representing the naming conventions to be used, as defined by
+     * the {@link IConventions} interface. This constant is assigned to the
+     * PostgreSQL-specific implementation ({@link IConventions#POSTGRES}).
+     *
+     * This value is intended as the default set of naming conventions for components
+     * that rely on database schema and table/column name generation. It ensures consistency
+     * in naming across migrations, schemas, and other database-related operations
+     * when working with PostgreSQL databases.
+     */
+    IConventions CONVENTIONS = IConventions.POSTGRES;
 
     /**
      * Monotonically increasing version number for this migration.

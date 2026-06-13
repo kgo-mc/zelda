@@ -168,6 +168,9 @@ public final class MigrationRunner {
             String historyTable = historyTable();
             logger.info("[Zelda/Migrations] Ensuring migration history table "+historyTable+" exists...");
             st.execute("""
+            CREATE SCHEMA IF NOT EXISTS %s;
+            """.formatted(schema));
+            st.execute("""
             CREATE TABLE IF NOT EXISTS %s (
                 version     INT          NOT NULL,
                 artifact    VARCHAR(100) NOT NULL,

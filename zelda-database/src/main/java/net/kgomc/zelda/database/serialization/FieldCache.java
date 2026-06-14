@@ -1,6 +1,8 @@
 package net.kgomc.zelda.database.serialization;
 
 import net.kgomc.zelda.core.context.ZeldaContext;
+import net.kgomc.zelda.database.serialization.annotations.Column;
+import net.kgomc.zelda.database.serialization.annotations.Transient;
 
 import java.lang.reflect.Field;
 import java.sql.ResultSetMetaData;
@@ -19,19 +21,18 @@ final class FieldCache {
 
         for (int i = 1; i <= cols; i++) {
             String columnLabel = meta.getColumnLabel(i);
-            String fieldName   = toCamelCase(columnLabel);
-            Field  field       = findField(probe.getClass(), fieldName);
+            Field  field       = findField(probe.getClass(), columnLabel);
 
             if (field != null) {
                 field.setAccessible(true);
             } else {
                 switch (strategy) {
                     case STRICT  -> throw new MappingException(
-                            "No field '" + fieldName + "' on " + probe.getClass().getName() +
-                                    " for column '" + columnLabel + "'. Use an SQL alias or add the field.", null);
+                            "No field for column '" + columnLabel + "' on " + probe.getClass().getName() +
+                                    ". Use an SQL alias, add the field, or annotate with @Column.", null);
                     case LENIENT -> ZeldaContext.get().getLogger().warning(
-                            "[Zelda/DB] Unmapped column '" + columnLabel + "' (-> '" + fieldName +
-                                    "') on " + probe.getClass().getName() + " — skipping.");
+                            "[Zelda/DB] Unmapped column '" + columnLabel +
+                                    "' on " + probe.getClass().getName() + " — skipping.");
                     case SILENT  -> {} // intentional no-op
                 }
             }
@@ -52,12 +53,37 @@ final class FieldCache {
         return sb.toString();
     }
 
-    // Walks the class hierarchy so inherited fields also resolve
-    private static Field findField(Class<?> type, String name) {
+    /**
+     * Resolves the field for a given column.
+     * Priority:
+     *  1) a field annotated {@code @Column(columnLabel)} — exact match wins immediately
+     *  2) a field matching the snake_case → camelCase convention
+     * Fields annotated {@code @Transient}, or {@code @Column} for a *different*
+     * column, are never used as convention fallbacks.
+     */
+    private static Field findField(Class<?> type, String columnLabel) {
+        String camelCaseName = toCamelCase(columnLabel);
+
         Class<?> current = type;
         while (current != null && current != Object.class) {
-            try { return current.getDeclaredField(name); }
-            catch (NoSuchFieldException e) { current = current.getSuperclass(); }
+            Field byConvention = null;
+
+            for (Field f : current.getDeclaredFields()) {
+                if (f.isAnnotationPresent(Transient.class)) continue;
+
+                Column col = f.getAnnotation(Column.class);
+                if (col != null) {
+                    if (col.value().equals(columnLabel)) return f; // explicit match wins
+                    continue; // claimed for a different column — skip entirely
+                }
+
+                if (byConvention == null && f.getName().equals(camelCaseName)) {
+                    byConvention = f;
+                }
+            }
+
+            if (byConvention != null) return byConvention;
+            current = current.getSuperclass();
         }
         return null;
     }

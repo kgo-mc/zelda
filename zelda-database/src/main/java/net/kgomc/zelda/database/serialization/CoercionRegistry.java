@@ -5,9 +5,7 @@ import java.math.BigInteger;
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.*;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -158,6 +156,10 @@ public final class CoercionRegistry {
         register(byte.class, ResultSet::getByte);
         register(Byte.class,       (rs, col) -> { byte v = rs.getByte(col); return rs.wasNull() ? null : v; });
         register(byte[].class, ResultSet::getBytes);
+        register(OffsetDateTime.class, (rs, col) -> {
+            Timestamp ts = rs.getTimestamp(col);
+            return ts != null ? ts.toLocalDateTime().atOffset(ZoneOffset.UTC) : null;
+        });
 
         // --- Precision types ---
         register(BigDecimal.class, ResultSet::getBigDecimal);

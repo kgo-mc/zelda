@@ -6,6 +6,8 @@ import net.kgomc.zelda.core.context.RuntimeKind;
 import java.io.IOException;
 import java.io.Reader;
 import java.lang.reflect.Type;
+import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 /**
@@ -159,6 +161,9 @@ public final class ZeldaGson {
 
         // Always available
         builder.registerTypeAdapter(UUID.class, new UUIDAdapter());
+        builder.registerTypeAdapter(Instant.class, new InstantAdapter());
+        builder.registerTypeAdapter(OffsetDateTime.class, new OffsetDateTimeAdapter());
+
 
         // Paper-specific — only on SERVER, reflection runs once here
         if (kind == RuntimeKind.SERVER) {
@@ -195,6 +200,34 @@ public final class ZeldaGson {
         public UUID deserialize(JsonElement json, Type type, JsonDeserializationContext ctx)
                 throws JsonParseException {
             return UUID.fromString(json.getAsString());
+        }
+    }
+
+    private static final class InstantAdapter
+            implements JsonSerializer<Instant>, JsonDeserializer<Instant> {
+
+        @Override
+        public Instant deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+            return Instant.parse(json.getAsString());
+        }
+
+        @Override
+        public JsonElement serialize(Instant src, Type typeOfSrc, JsonSerializationContext context) {
+            return new JsonPrimitive(src.toString());
+        }
+    }
+
+    private static final class OffsetDateTimeAdapter
+    implements JsonSerializer<java.time.OffsetDateTime>, JsonDeserializer<java.time.OffsetDateTime> {
+
+        @Override
+        public OffsetDateTime deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+            return OffsetDateTime.parse(json.getAsString());
+        }
+
+        @Override
+        public JsonElement serialize(OffsetDateTime src, Type typeOfSrc, JsonSerializationContext context) {
+            return new JsonPrimitive(src.toString());
         }
     }
 
